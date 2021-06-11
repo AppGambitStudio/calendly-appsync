@@ -1,0 +1,21 @@
+{
+    "version" : "2017-02-28",
+    "operation" : "UpdateItem",     
+    "key" : {
+        "id" : $util.dynamodb.toDynamoDBJson($context.identity.username)        
+    },
+    "update" : {
+        "expression" : "SET #schedule = :schedule, #hasSchedule = :hasSchedule",
+        "expressionNames" : {
+            "#schedule" : "schedule",
+            "#hasSchedule": "hasSchedule"
+        },
+        "expressionValues" : {
+            ":schedule" : $util.dynamodb.toDynamoDBJson($ctx.args.schedule),
+            ":hasSchedule": $util.dynamodb.toDynamoDBJson(true)
+        }
+    },
+    "condition" : {
+      "expression" : "attribute_exists(id)"
+  }
+}

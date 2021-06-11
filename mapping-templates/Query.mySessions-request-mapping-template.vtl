@@ -1,0 +1,15 @@
+{
+    "version" : "2017-02-28",
+    "operation" : "Query",
+    "query" : {
+        "expression" : "id = :userId and #sessionTime between :startDate and :endDate",
+        "expressionNames": {
+            "#sessionTime": "sessionTime"
+        },
+        "expressionValues" : {
+            ":userId" : $util.dynamodb.toDynamoDBJson($context.identity.username),
+            ":startDate": $util.dynamodb.toDynamoDBJson($ctx.args.startDate),
+            ":endDate": $util.dynamodb.toDynamoDBJson($ctx.args.endDate)
+        }
+    }    
+}

@@ -1,0 +1,10 @@
+# Myfiles
+.npmignore
+appsync.code-workspace
+.serverless
+.env
+node_modules/**
+.DS_Store
+**/.DS_Store
+package-lock.json
+config.*

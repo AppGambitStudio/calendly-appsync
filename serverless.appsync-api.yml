@@ -1,0 +1,79 @@
+name: calendly-appsync-${self:provider.stage}
+schema: schema.api.graphql
+authenticationType: AMAZON_COGNITO_USER_POOLS
+userPoolConfig:
+  awsRegion: "${self:provider.region}"
+  defaultAction: ALLOW
+  userPoolId: !Ref CognitoUserPool 
+logConfig:
+  loggingRoleArn: { Fn::GetAtt: [AppSyncLoggingServiceRole, Arn] }
+  level: ALL
+  excludeVerboseContent: false
+
+mappingTemplates:
+  - dataSource: Users
+    type: Query
+    field: myProfile
+    request: "Query.myProfile-request-mapping-template.vtl"
+    response: "Query.myProfile-response-mapping-template.vtl"
+  
+  - dataSource: UserLink
+    type: Mutation
+    field: setUserLink
+    request: "Mutation.setUserLink-request-mapping-template.vtl"
+    response: "Mutation.setUserLink-response-mapping-template.vtl"
+
+  - dataSource: Users
+    type: Mutation
+    field: setWorkingDays
+    request: "Mutation.setWorkingDays-request-mapping-template.vtl"
+    response: "Mutation.setWorkingDays-response-mapping-template.vtl"
+
+  - dataSource: UserEvent
+    type: Mutation
+    field: addEvent
+    request: "Mutation.addEvent-request-mapping-template.vtl"
+    response: "Mutation.addEvent-response-mapping-template.vtl"
+
+  - dataSource: UserEvent
+    type: Query
+    field: myEvents
+    request: "Query.myEvents-request-mapping-template.vtl"
+    response: "Query.myEvents-response-mapping-template.vtl"
+
+  - dataSource: UserSession
+    type: Mutation
+    field: addSession
+    request: "Mutation.addSession-request-mapping-template.vtl"
+    response: "Mutation.addSession-response-mapping-template.vtl"
+
+  - dataSource: UserSession
+    type: Query
+    field: mySessions
+    request: "Query.mySessions-request-mapping-template.vtl"
+    response: "Query.mySessions-response-mapping-template.vtl"
+
+dataSources:
+  - type: AMAZON_DYNAMODB
+    name: Users
+    description: 'Users table'
+    config:
+      tableName: { Ref: UsersTable }
+
+  - type: AMAZON_DYNAMODB
+    name: UserLink
+    description: 'User Link Table'
+    config:
+      tableName: { Ref: UserLinkTable }
+
+  - type: AMAZON_DYNAMODB
+    name: UserEvent
+    description: 'User Event Table'
+    config:
+      tableName: { Ref: UserEventTable }
+
+  - type: AMAZON_DYNAMODB
+    name: UserSession
+    description: 'User Session Table'
+    config:
+      tableName: { Ref: UserSessionTable }

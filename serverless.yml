@@ -1,0 +1,215 @@
+service: calendly-backend
+frameworkVersion: '2'
+
+plugins:
+  - serverless-appsync-plugin
+  - serverless-iam-roles-per-function
+  - serverless-export-env
+  - serverless-plugin-include-dependencies
+  - serverless-plugin-common-excludes
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  lambdaHashingVersion: '20201221'
+  environment:
+    STAGE: ${opt:stage}
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+    USERS_TABLE: !Ref UsersTable
+    SENDER_EMAIL: 'dhaval@appgambit.com'
+    PINPOINT_APP: ${self:custom.pinpointAppId}
+
+custom:
+  region: ${opt:region, self:provider.region}
+  appSync:
+    - ${file(serverless.appsync-api.yml)}
+  includeDependencies:
+    enableCaching: true
+  pinpointAppId: ${file(./config.${opt:stage, 'dev'}.json):PINPOINT_APPID}
+  pinpointAppArn: arn:aws:mobiletargeting:${self:provider.region}:#{AWS::AccountId}:apps/${self:custom.pinpointAppId}/messages
+  # COGNITO_USER_POOL_ID: !Ref CognitoUserPool.Arn
+
+package:
+  exclude:
+    - node_modules/**/aws-sdk/**
+    - email-templates/**
+    - __tests__/**
+    - mapping-templates/**
+    - '*.json'
+    - '*.yml'
+    - '*.graphql'    
+  excludeDevDependencies: false
+  individually: true
+
+functions:
+  confirmUserSignup:
+    handler: functions/cognito/confirm-user-signup.handler
+    environment:
+      USERS_TABLE: !Ref UsersTable
+      # COGNITO_USER_POOL_ARN: !GetAtt CognitoUserPool.Arn     
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:PutItem
+        Resource: !GetAtt UsersTable.Arn
+      - Effect: Allow
+        Action: cognito-idp:AdminAddUserToGroup
+        Resource: '*'
+  
+  userSessionStreamEvent:
+    handler: functions/stream/user-session-event.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - UserSessionTable
+              - StreamArn 
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Scan
+          - dynamodb:Query
+          - dynamodb:GetItem
+          - dynamodb:DeleteItem
+        Resource:
+          - Fn::GetAtt:
+              - UserSessionTable
+              - Arn 
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+
+    UserLinkTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: link
+            KeyType: HASH          
+        AttributeDefinitions:
+          - AttributeName: link
+            AttributeType: S          
+
+    UserEventTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: shortName
+            KeyType: RANGE
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: shortName
+            AttributeType: S
+
+    UserSessionTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: sessionTime
+            KeyType: RANGE
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: sessionTime
+            AttributeType: S
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        AutoVerifiedAttributes:
+          - email
+        VerificationMessageTemplate:
+          DefaultEmailOption: CONFIRM_WITH_LINK
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireUppercase: true
+            RequireSymbols: false
+        UsernameAttributes:
+          - email
+        Schema:
+          - AttributeDataType: String
+            Name: name
+            Required: false
+            Mutable: true          
+
+        LambdaConfig:
+          PostConfirmation: !GetAtt ConfirmUserSignupLambdaFunction.Arn
+
+    CognitoUserGroupNormalUsers: 
+      Type: AWS::Cognito::UserPoolGroup
+      Properties:
+        GroupName: User
+        Description: Calendly Normal Users
+        Precedence: 1
+        UserPoolId:
+          Ref: CognitoUserPool
+
+    UserPoolInvokeConfirmUserSignupLambdaPermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        Action: lambda:invokeFunction
+        FunctionName: !Ref ConfirmUserSignupLambdaFunction
+        Principal: cognito-idp.amazonaws.com
+        SourceArn: !GetAtt CognitoUserPool.Arn
+
+    WebUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        UserPoolId: !Ref CognitoUserPool
+        ClientName: web
+        ExplicitAuthFlows:
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+        PreventUserExistenceErrors: LEGACY
+
+    CalendlyCognitoDomain:
+      Type: AWS::Cognito::UserPoolDomain
+      Properties: 
+        Domain: 'calendly-app-${self:provider.stage}'
+        UserPoolId: !Ref CognitoUserPool
+
+    AppSyncLoggingServiceRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: "calendly-appsync-logs-${self:provider.region}-${self:provider.stage}-role"
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service:
+                  - "appsync.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: "calendly-appsync-logs-${self:provider.region}-${self:provider.stage}-policy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+                  Resource: "*"

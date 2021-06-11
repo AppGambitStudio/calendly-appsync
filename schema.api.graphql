@@ -1,0 +1,88 @@
+
+input WorkingDayConfigInput {
+    mon: Boolean
+    tue: Boolean
+    wed: Boolean
+    thu: Boolean
+    fri: Boolean
+    sat: Boolean
+    sun: Boolean
+    startHour: Int
+    endHour: Int
+}
+
+type WorkingDayConfig {
+    mon: Boolean
+    tue: Boolean
+    wed: Boolean
+    thu: Boolean
+    fri: Boolean
+    sat: Boolean
+    sun: Boolean
+    startHour: Int
+    endHour: Int
+}
+
+type User{
+    id: String
+    hasLink: Boolean
+    hasSchedule: Boolean
+
+    link: String
+    schedule: WorkingDayConfig    
+}
+
+type UserEvent{
+    id: ID!    
+    eventName: String
+    shortName: String
+    duration: Int
+}
+
+type UserSession{
+    duration: Int
+    sessionTime: AWSDateTime
+    contactName: String
+    contactEmail: String
+    userTimezone: String
+}
+
+type Query {
+    myProfile: User
+    @aws_auth(cognito_groups: ["User"])
+    
+    myEvents: UserEventConnection!
+    @aws_auth(cognito_groups: ["User"])
+
+    mySessions(startDate: AWSDate, endDate: AWSDate): UserSessionConnection!
+    @aws_auth(cognito_groups: ["User"])
+}
+
+type UserSessionConnection{
+    nextToken: String
+    sessions: [UserSession]!
+}
+
+type UserEventConnection{
+    nextToken: String
+    events: [UserEvent]!
+}
+
+type Mutation{
+    setUserLink(link: String!): User
+    @aws_auth(cognito_groups: ["User"])
+
+    setWorkingDays(schedule: WorkingDayConfigInput!): User
+    @aws_auth(cognito_groups: ["User"])
+
+    addEvent(shortName: String!, eventName: String!, duration: Int!): UserEvent
+    @aws_auth(cognito_groups: ["User"])
+
+    addSession(contactName: String, contactEmail: String, duration: Int, sessionTime: AWSDateTime, userTimezone: String): UserSession
+    @aws_auth(cognito_groups: ["User"])
+}
+
+schema {
+	query: Query
+	mutation: Mutation
+}

@@ -1,0 +1,14 @@
+{
+  "version" : "2018-05-29",
+  "operation" : "PutItem",  
+  "key": {
+    "id" : $util.dynamodb.toDynamoDBJson($context.identity.username),
+    "shortName" : $util.dynamodb.toDynamoDBJson($ctx.args.shortName)
+  },
+  "attributeValues": {
+    "eventName" : $util.dynamodb.toDynamoDBJson($ctx.args.eventName)
+  },
+  "condition" : {
+      "expression" : "attribute_not_exists(id) and attribute_not_exists(shortName)"
+  }
+}
