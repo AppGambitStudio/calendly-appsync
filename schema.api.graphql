@@ -47,17 +47,6 @@ type UserSession{
     userTimezone: String
 }
 
-type Query {
-    myProfile: User
-    @aws_auth(cognito_groups: ["User"])
-    
-    myEvents: UserEventConnection!
-    @aws_auth(cognito_groups: ["User"])
-
-    mySessions(startDate: AWSDate, endDate: AWSDate): UserSessionConnection!
-    @aws_auth(cognito_groups: ["User"])
-}
-
 type UserSessionConnection{
     nextToken: String
     sessions: [UserSession]!
@@ -79,6 +68,17 @@ type Mutation{
     @aws_auth(cognito_groups: ["User"])
 
     addSession(contactName: String, contactEmail: String, duration: Int, sessionTime: AWSDateTime, userTimezone: String): UserSession
+    @aws_auth(cognito_groups: ["User"])
+}
+
+type Query {
+    myProfile: User
+    @aws_auth(cognito_groups: ["User"])
+    
+    myEvents: UserEventConnection!
+    @aws_auth(cognito_groups: ["User"])
+
+    mySessions(startDate: AWSDate, endDate: AWSDate): UserSessionConnection!
     @aws_auth(cognito_groups: ["User"])
 }
 

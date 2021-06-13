@@ -44,6 +44,51 @@ package:
   individually: true
 
 functions:
+  getUserInfo:
+    handler: functions/api/get-user-info.handler
+    events:
+      - http:
+          path: user-info
+          method: get
+    environment:
+      USER_LINK_TABLE: !Ref UserLinkTable
+      USER_TABLE: !Ref UsersTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:GetItem
+        Resource: !GetAtt UserLinkTable.Arn
+      - Effect: Allow
+        Action: dynamodb:GetItem
+        Resource: !GetAtt UsersTable.Arn
+
+  getUserSchedule:
+    handler: functions/api/get-user-schedule.handler
+    events:
+      - http:
+          path: user-schedule
+          method: get
+    environment:
+      USER_SESSION_TABLE: !Ref UserSessionTable      
+    iamRoleStatements:
+      - Effect: Allow
+        Action: 
+          - dynamodb:GetItem
+          - dynamodb:Query
+        Resource: !GetAtt UserSessionTable.Arn      
+
+  createSession:
+    handler: functions/api/create-session.handler
+    events:
+      - http:
+          path: user-session
+          method: post
+    environment:
+      USER_SESSION_TABLE: !Ref UserSessionTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:PutItem
+        Resource: !GetAtt UserSessionTable.Arn
+
   confirmUserSignup:
     handler: functions/cognito/confirm-user-signup.handler
     environment:
