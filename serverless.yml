@@ -230,6 +230,19 @@ resources:
           - ALLOW_USER_PASSWORD_AUTH
           - ALLOW_REFRESH_TOKEN_AUTH
         PreventUserExistenceErrors: LEGACY
+        AllowedOAuthFlowsUserPoolClient: true
+        SupportedIdentityProviders:
+          - COGNITO
+        CallbackURLs:
+          - http://localhost:8080
+        LogoutURLs:
+          - http://localhost:8080/logout
+        AllowedOAuthFlows:
+          - implicit
+        AllowedOAuthScopes:
+          - email
+          - openid
+          - profile
 
     CalendlyCognitoDomain:
       Type: AWS::Cognito::UserPoolDomain
