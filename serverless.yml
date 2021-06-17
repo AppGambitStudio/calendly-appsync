@@ -27,9 +27,6 @@ custom:
     - ${file(serverless.appsync-api.yml)}
   includeDependencies:
     enableCaching: true
-  # pinpointAppId: ${file(./config.${opt:stage, 'dev'}.json):PINPOINT_APPID}
-  # pinpointAppArn: arn:aws:mobiletargeting:${self:provider.region}:#{AWS::AccountId}:apps/${self:custom.pinpointAppId}/messages
-  # COGNITO_USER_POOL_ID: !Ref CognitoUserPool.Arn  
   pinpointAppId: !Ref PinpointApplication  
   pinpointNewSessionTemplate: !Ref NewSessionBookedPinpointTemplate
   FromEmailAddress: ${file(./config.${opt:stage, 'dev'}.json):FromEmailAddress}
@@ -103,8 +100,7 @@ functions:
   confirmUserSignup:
     handler: functions/cognito/confirm-user-signup.handler
     environment:
-      USERS_TABLE: !Ref UsersTable
-      # COGNITO_USER_POOL_ARN: !GetAtt CognitoUserPool.Arn     
+      USERS_TABLE: !Ref UsersTable      
     iamRoleStatements:
       - Effect: Allow
         Action: dynamodb:PutItem
