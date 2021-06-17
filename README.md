@@ -4,13 +4,6 @@
 
 Copy the `sample.config.json` file and create the `config.<stage>.json` file and set the correct values.
 
-## Amazon Pinpoint Setup
-
-- Go to the Amazon Pinpoint Console
-- Create a new Pinpoint Project and Enable the Email Channel
-- Make sure you verify the Sender Email
-- Copy the Pinpoint Project ID and set into your `config.<stage>.json` file from the previous step.
-
 ## Deploy
 
 ```

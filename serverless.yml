@@ -19,7 +19,7 @@ provider:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
     USERS_TABLE: !Ref UsersTable
     PINPOINT_APP: ${self:custom.pinpointAppId}
-    NEW_SESSION_TEMPLATE: 'calendly-new-session'
+    NEW_SESSION_TEMPLATE: ${self:custom.pinpointNewSessionTemplate}
 
 custom:
   region: ${opt:region, self:provider.region}
@@ -27,9 +27,12 @@ custom:
     - ${file(serverless.appsync-api.yml)}
   includeDependencies:
     enableCaching: true
-  pinpointAppId: ${file(./config.${opt:stage, 'dev'}.json):PINPOINT_APPID}
-  pinpointAppArn: arn:aws:mobiletargeting:${self:provider.region}:#{AWS::AccountId}:apps/${self:custom.pinpointAppId}/messages
-  # COGNITO_USER_POOL_ID: !Ref CognitoUserPool.Arn
+  # pinpointAppId: ${file(./config.${opt:stage, 'dev'}.json):PINPOINT_APPID}
+  # pinpointAppArn: arn:aws:mobiletargeting:${self:provider.region}:#{AWS::AccountId}:apps/${self:custom.pinpointAppId}/messages
+  # COGNITO_USER_POOL_ID: !Ref CognitoUserPool.Arn  
+  pinpointAppId: !Ref PinpointApplication  
+  pinpointNewSessionTemplate: !Ref NewSessionBookedPinpointTemplate
+  FromEmailAddress: ${file(./config.${opt:stage, 'dev'}.json):FromEmailAddress}
 
 package:
   exclude:
@@ -186,6 +189,7 @@ resources:
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
 
+    #****** Cognito Configuration ******#
     CognitoUserPool:
       Type: AWS::Cognito::UserPool
       Properties:
@@ -257,6 +261,29 @@ resources:
       Properties: 
         Domain: 'calendly-app-${self:provider.stage}'
         UserPoolId: !Ref CognitoUserPool
+
+    #****** Pinpoint Configuration ******#
+    PinpointApplication:
+      Type: AWS::Pinpoint::App
+      Properties:
+        Name: 'calendly-app-${self:provider.stage}'
+
+    PinpointEmailChannelFeature:
+      Type: AWS::Pinpoint::EmailChannel
+      Properties: 
+        ApplicationId: !Ref PinpointApplication
+        Enabled: True
+        FromAddress: ${self:custom.FromEmailAddress}
+        Identity: !Sub 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${self:custom.FromEmailAddress}'
+
+    NewSessionBookedPinpointTemplate:
+      Type: AWS::Pinpoint::EmailTemplate
+      Properties:
+        TemplateName: 'calendly-app-${self:provider.stage}-new-session-booked'
+        Subject: 'Calendly Clone App - New Session Alert!! {{Duration}} booked by {{Name}}'
+        HtmlPart: '<html> <head> <style> body{ text-align: center; } body table{ margin: 0 auto; } </style> </head> <body > <h1>New Session Booked!</h1> <table border="1" cellpadding="10"> <tr> <td>Name</td> <td>{{Name}}</td> </tr> <tr> <td>Email</td> <td>{{Email}}</td> </tr> <tr> <td>Scheduled On</td> <td>{{ScheduledOn}} for {{Duration}}</td> </tr> </table> <br><br> Note: You will receive an email reminder 10 minutes prior to your session. </body> </html>'
+        # Use https://tools.knowledgewalls.com/online-multiline-to-single-line-converter
+        # To convert HTML into single line and paste in the HtmlPart
 
     AppSyncLoggingServiceRole:
       Type: "AWS::IAM::Role"

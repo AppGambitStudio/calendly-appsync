@@ -18,7 +18,8 @@ module.exports.handler = async (event) => {
       createdOn: new Date().toJSON(),
       updatedOn: new Date().toJSON(),
       hasLink: false,
-      hasSchedule: false
+      hasSchedule: false,
+      timezone: 'America/Los_Angeles'
     }
     await DocumentClient.put({
       TableName: USERS_TABLE,
