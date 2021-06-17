@@ -1,0 +1,37 @@
+{
+  "version": "2018-05-29",
+  "operation": "TransactWriteItems",
+  "transactItems": [
+    {
+      "table": "${UserLinkTable}",
+      "operation" : "PutItem",  
+      "key": {
+        "link" : $util.dynamodb.toDynamoDBJson($context.arguments.link)    
+      },
+      "attributeValues": {
+        "userId" : $util.dynamodb.toDynamoDBJson($context.identity.username)
+      },
+      "condition" : {
+          "expression" : "attribute_not_exists(link)"
+      }
+    },
+    {
+      "table": "${UsersTable}",
+      "operation": "UpdateItem",
+      "key": {
+        "id": $util.dynamodb.toDynamoDBJson($context.identity.username)
+      },
+      "update": {
+        "expression": "SET hasLink = :hasLink, link = :link, updatedOn = :updatedOn",
+        "expressionValues": {
+          ":hasLink": $util.dynamodb.toDynamoDBJson(true),
+          ":link": $util.dynamodb.toDynamoDBJson($context.arguments.link),
+          ":updatedOn": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
+        }
+      },
+      "condition": {
+        "expression": "attribute_exists(id)"
+      }
+    }
+  ]
+}

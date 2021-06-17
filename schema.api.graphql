@@ -29,7 +29,10 @@ type User{
     hasSchedule: Boolean
 
     link: String
-    schedule: WorkingDayConfig    
+    schedule: WorkingDayConfig
+
+    createdOn: AWSDateTime
+    updatedOn: AWSDateTime
 }
 
 type UserEvent{
@@ -58,7 +61,7 @@ type UserEventConnection{
 }
 
 type Mutation{
-    setUserLink(link: String!): User
+    setUserLink(link: String!): Boolean
     @aws_auth(cognito_groups: ["User"])
 
     setWorkingDays(schedule: WorkingDayConfigInput!): User

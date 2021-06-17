@@ -13,45 +13,31 @@ logConfig:
 mappingTemplates:
   - dataSource: Users
     type: Query
-    field: myProfile
-    request: "Query.myProfile-request-mapping-template.vtl"
-    response: "Query.myProfile-response-mapping-template.vtl"
+    field: myProfile    
   
-  - dataSource: UserLink
+  - dataSource: setUserLink
     type: Mutation
-    field: setUserLink
-    request: "Mutation.setUserLink-request-mapping-template.vtl"
-    response: "Mutation.setUserLink-response-mapping-template.vtl"
+    field: setUserLink    
 
   - dataSource: Users
     type: Mutation
-    field: setWorkingDays
-    request: "Mutation.setWorkingDays-request-mapping-template.vtl"
-    response: "Mutation.setWorkingDays-response-mapping-template.vtl"
+    field: setWorkingDays    
 
   - dataSource: UserEvent
     type: Mutation
-    field: addEvent
-    request: "Mutation.addEvent-request-mapping-template.vtl"
-    response: "Mutation.addEvent-response-mapping-template.vtl"
+    field: addEvent    
 
   - dataSource: UserEvent
     type: Query
-    field: myEvents
-    request: "Query.myEvents-request-mapping-template.vtl"
-    response: "Query.myEvents-response-mapping-template.vtl"
+    field: myEvents    
 
   - dataSource: UserSession
     type: Mutation
-    field: addSession
-    request: "Mutation.addSession-request-mapping-template.vtl"
-    response: "Mutation.addSession-response-mapping-template.vtl"
+    field: addSession    
 
   - dataSource: UserSession
     type: Query
-    field: mySessions
-    request: "Query.mySessions-request-mapping-template.vtl"
-    response: "Query.mySessions-response-mapping-template.vtl"
+    field: mySessions    
 
 dataSources:
   - type: AMAZON_DYNAMODB
@@ -77,3 +63,20 @@ dataSources:
     description: 'User Session Table'
     config:
       tableName: { Ref: UserSessionTable }
+
+  - type: AMAZON_DYNAMODB
+    name: setUserLink
+    description: 'Set URL Link for the User'
+    config: 
+      tableName: { Ref: UserLinkTable }
+      iamRoleStatements:
+        - Effect: Allow
+          Action: dynamodb:PutItem
+          Resource: !GetAtt UserLinkTable.Arn
+        - Effect: Allow
+          Action: dynamodb:UpdateItem
+          Resource: !GetAtt UsersTable.Arn            
+
+substitutions:
+  UsersTable: !Ref UsersTable
+  UserLinkTable: !Ref UserLinkTable

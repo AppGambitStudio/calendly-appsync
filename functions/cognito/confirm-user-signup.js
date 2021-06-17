@@ -15,8 +15,10 @@ module.exports.handler = async (event) => {
       id: event.userName,
       name: name,
       email: email,
-      dateCreateRegister: new Date().toJSON(),
-      dateModifiedRegister: new Date().toJSON()
+      createdOn: new Date().toJSON(),
+      updatedOn: new Date().toJSON(),
+      hasLink: false,
+      hasSchedule: false
     }
     await DocumentClient.put({
       TableName: USERS_TABLE,
@@ -24,9 +26,7 @@ module.exports.handler = async (event) => {
       ConditionExpression: 'attribute_not_exists(id)'
     }).promise()
 
-    await cognitoLib.addUserToUserGroup(user.id)
-    console.log('user added in group')
-    
+    await cognitoLib.addUserToUserGroup(user.id)        
     return event
   } else {
     return event

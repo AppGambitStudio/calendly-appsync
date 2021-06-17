@@ -6,7 +6,8 @@
     "shortName" : $util.dynamodb.toDynamoDBJson($ctx.args.shortName)
   },
   "attributeValues": {
-    "eventName" : $util.dynamodb.toDynamoDBJson($ctx.args.eventName)
+    "eventName" : $util.dynamodb.toDynamoDBJson($ctx.args.eventName),
+    "duration": $util.dynamodb.toDynamoDBJson($ctx.args.duration)
   },
   "condition" : {
       "expression" : "attribute_not_exists(id) and attribute_not_exists(shortName)"
