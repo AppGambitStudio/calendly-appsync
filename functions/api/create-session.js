@@ -1,8 +1,10 @@
 const DynamoDB = require('aws-sdk/clients/dynamodb');
-const moment = require('moment');
 const DocumentClient = new DynamoDB.DocumentClient()
+const moment = require('moment');
+const moment_timezone = require('moment-timezone');
+const commons = require('../lib/common');
 
-const { USER_SESSION_TABLE } = process.env;
+const { USER_SESSION_TABLE, USERS_TABLE } = process.env;
 
 module.exports.handler = async (event) => {
     const { id, name, email, sessionTime, duration, timezone } = JSON.parse(event.body)
@@ -28,7 +30,25 @@ module.exports.handler = async (event) => {
             Item: item,
             ConditionExpression: "attribute_not_exists(id) and attribute_not_exists(sessionTime)"
         }).promise();
+
+        const userObj = await DocumentClient.get({
+            TableName: USERS_TABLE,
+            Key: {
+                id: id
+            }
+        }).promise();        
+
+        const toEmail = userObj.Item.email;
+        const toSessionTime = moment.tz(sessionTime, userObj.Item.timezone).format('DD-MM-YYYY h:mm:ss A')
+        const userSessionTime = moment.tz(sessionTime, timezone).format('DD-MM-YYYY h:mm:ss A');
+        await commons.sendEmail(toEmail, toSessionTime, {
+            name,
+            email,
+            duration,
+            sessionTime: userSessionTime
+        })
     }catch(e){
+        console.log(e);
         result.statusCode = 500
         result.body = JSON.stringify({message: 'Invalid session time'})        
     }

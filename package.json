@@ -24,6 +24,7 @@
     "@middy/core": "^2.4.1",
     "axios": "^0.21.1",
     "lodash": "^4.17.21",
-    "moment": "^2.29.1"
+    "moment": "^2.29.1",
+    "moment-timezone": "^0.5.33"
   }
 }

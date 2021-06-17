@@ -1,0 +1,33 @@
+
+<html>
+    <head>
+        <style>
+            body{
+                text-align: center;
+            }
+            
+            body table{
+                margin: 0 auto;
+            }
+        </style>
+    </head>
+    <body >
+        <h1>New Session Booked!</h1>
+        <table border="1" cellpadding="10">
+            <tr>
+                <td>Name</td>
+                <td>{{Name}}</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>{{Email}}</td>
+            </tr>
+            <tr>
+                <td>Scheduled On</td>
+                <td>{{ScheduledOn}} for {{Duration}}</td>
+            </tr>
+        </table>
+        <br><br>
+        Note: You will receive an email reminder 10 minutes prior to your session.
+    </body>
+</html>

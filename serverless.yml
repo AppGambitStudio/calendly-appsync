@@ -18,8 +18,8 @@ provider:
     STAGE: ${opt:stage}
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
     USERS_TABLE: !Ref UsersTable
-    SENDER_EMAIL: 'dhaval@appgambit.com'
     PINPOINT_APP: ${self:custom.pinpointAppId}
+    NEW_SESSION_TEMPLATE: 'calendly-new-session'
 
 custom:
   region: ${opt:region, self:provider.region}
@@ -88,7 +88,14 @@ functions:
       - Effect: Allow
         Action: dynamodb:PutItem
         Resource: !GetAtt UserSessionTable.Arn
-
+      - Effect: Allow
+        Action: dynamodb:GetItem
+        Resource: !GetAtt UsersTable.Arn
+      - Effect: Allow
+        Action:
+          - mobiletargeting:SendMessages
+        Resource: '*'
+          
   confirmUserSignup:
     handler: functions/cognito/confirm-user-signup.handler
     environment:
