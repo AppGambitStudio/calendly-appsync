@@ -39,7 +39,8 @@ package:
     - mapping-templates/**
     - '*.json'
     - '*.yml'
-    - '*.graphql'    
+    - '*.graphql'
+    - assets/**
   excludeDevDependencies: false
   individually: true
 
