@@ -25,6 +25,7 @@ type WorkingDayConfig {
 
 type User{
     id: String
+    email: String
     hasLink: Boolean
     hasSchedule: Boolean
 
