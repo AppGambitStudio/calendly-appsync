@@ -51,6 +51,7 @@ functions:
       - http:
           path: user-info
           method: get
+          cors: true
     environment:
       USER_LINK_TABLE: !Ref UserLinkTable
       USER_TABLE: !Ref UsersTable
@@ -68,6 +69,7 @@ functions:
       - http:
           path: user-schedule
           method: get
+          cors: true
     environment:
       USER_SESSION_TABLE: !Ref UserSessionTable      
     iamRoleStatements:
@@ -83,6 +85,7 @@ functions:
       - http:
           path: user-session
           method: post
+          cors: true
     environment:
       USER_SESSION_TABLE: !Ref UserSessionTable
     iamRoleStatements:
@@ -244,7 +247,7 @@ resources:
         CallbackURLs:
           - http://localhost:8080
         LogoutURLs:
-          - http://localhost:8080/logout
+          - http://localhost:8080
         AllowedOAuthFlows:
           - implicit
         AllowedOAuthScopes:
