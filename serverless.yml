@@ -22,6 +22,7 @@ provider:
     NEW_SESSION_TEMPLATE: ${self:custom.pinpointNewSessionTemplate}
 
 custom:
+  bucket-name: ${file(./config.${opt:stage, 'dev'}.json):BUCKET_NAME} # S3 Bucket Name
   region: ${opt:region, self:provider.region}
   appSync:
     - ${file(serverless.appsync-api.yml)}
@@ -245,15 +246,15 @@ resources:
         SupportedIdentityProviders:
           - COGNITO
         CallbackURLs:
-          - http://localhost:8080
+          - !Join ["", ["https://", !GetAtt CloudFrontDistro.DomainName, ""]]          
         LogoutURLs:
-          - http://localhost:8080
+          - !Join ["",["https://",!GetAtt CloudFrontDistro.DomainName, ""]]
         AllowedOAuthFlows:
           - implicit
         AllowedOAuthScopes:
           - email
           - openid
-          - profile
+          - profile        
 
     CalendlyCognitoDomain:
       Type: AWS::Cognito::UserPoolDomain
@@ -284,6 +285,88 @@ resources:
         # Use https://tools.knowledgewalls.com/online-multiline-to-single-line-converter
         # To convert HTML into single line and paste in the HtmlPart
 
+    # Website Hosting S3 Bucket
+    S3SiteBucket: # Host website content in this bucket
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.bucket-name}
+        WebsiteConfiguration:          
+          IndexDocument: index.html
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+              AllowedOrigins:
+                - '*'
+              ExposedHeaders:
+                - Date
+              Id: myCORSRuleId1
+              MaxAge: 3600        
+
+    OriginAccessIdentity:
+      Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+      Properties:
+        CloudFrontOriginAccessIdentityConfig:
+          Comment: !Sub 'OriginAccessIdentity for ${S3SiteBucket}'
+
+    BucketPolicy: # Allow site access from CloudFront only
+      DependsOn: OriginAccessIdentity
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: OriginBucketPolicy
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                CanonicalUser: !GetAtt OriginAccessIdentity.S3CanonicalUserId
+              Action: 's3:GetObject'
+              Resource: !Sub 'arn:aws:s3:::${S3SiteBucket}/*'
+        Bucket: !Ref S3SiteBucket
+    
+    CloudFrontDistro: # To serve the website via CDN
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+          - DomainName: ${self:custom.bucket-name}.s3.amazonaws.com
+            Id: myS3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${OriginAccessIdentity}'
+          Enabled: 'true'
+          Comment: 'Calendly Clone App Distro'
+          DefaultRootObject: index.html          
+          DefaultCacheBehavior:            
+            AllowedMethods:
+              - GET
+              - HEAD
+              - DELETE
+              - OPTIONS
+              - PATCH
+              - POST
+              - PUT
+            CachedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            Compress: true
+            DefaultTTL: 300
+            ForwardedValues:
+              Headers:
+                - Accept
+                - Referer
+                - Authorization
+                - Content-Type
+              QueryString: true
+            MaxTTL: 300
+            TargetOriginId: myS3Origin
+            ViewerProtocolPolicy: https-only          
+          PriceClass: 'PriceClass_100'          
+          ViewerCertificate:
+              CloudFrontDefaultCertificate: true
+
     AppSyncLoggingServiceRole:
       Type: "AWS::IAM::Role"
       Properties:
@@ -309,7 +392,7 @@ resources:
 outputs:
   CognitoUserPoolId:
     Value: !Ref CognitoUserPool
-    
+
   CalendlyCognitoDomainName:
     Value: !Ref CalendlyCognitoDomain
   

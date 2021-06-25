@@ -1,3 +1,4 @@
 {
-    "FromEmailAddress": ""
+    "FromEmailAddress": "",
+    "BUCKET_NAME": ""
 }
