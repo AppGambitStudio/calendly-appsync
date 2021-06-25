@@ -7,6 +7,7 @@ plugins:
   - serverless-export-env
   - serverless-plugin-include-dependencies
   - serverless-plugin-common-excludes
+  - serverless-stack-output
 
 provider:
   name: aws
@@ -31,6 +32,8 @@ custom:
   pinpointAppId: !Ref PinpointApplication  
   pinpointNewSessionTemplate: !Ref NewSessionBookedPinpointTemplate
   FromEmailAddress: ${file(./config.${opt:stage, 'dev'}.json):FromEmailAddress}
+  output:
+    file: output-stack.yml
 
 package:
   exclude:
@@ -42,6 +45,8 @@ package:
     - '*.yml'
     - '*.graphql'
     - assets/**
+    - output-stack.yml
+
   excludeDevDependencies: false
   individually: true
 
@@ -389,12 +394,12 @@ resources:
                   Action: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
                   Resource: "*"
 
-outputs:
-  CognitoUserPoolId:
-    Value: !Ref CognitoUserPool
+  Outputs:
+    CognitoUserPoolId:
+      Value: !Ref CognitoUserPool
 
-  CalendlyCognitoDomainName:
-    Value: !Ref CalendlyCognitoDomain
-  
-  WebUserPoolClientId:
-    Value: !Ref WebUserPoolClient  
+    WebUserPoolClientId:
+      Value: !Ref WebUserPoolClient
+
+    CloudfrontDomainName:
+      Value: !GetAtt CloudFrontDistro.DomainName          
