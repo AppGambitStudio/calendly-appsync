@@ -7,7 +7,7 @@ const commons = require('../lib/common');
 const { USER_SESSION_TABLE, USERS_TABLE } = process.env;
 
 module.exports.handler = async (event) => {
-    const { id, name, email, sessionTime, duration, timezone } = JSON.parse(event.body)
+    const { id, name, email, sessionTime, duration, timezone, message } = JSON.parse(event.body)
     console.log(id, name, email, sessionTime, duration, timezone);
 
     const result = {
@@ -27,7 +27,8 @@ module.exports.handler = async (event) => {
             contactName: name,
             contactEmail: email,                
             duration: duration,
-            userTimezone: timezone || 'UTC'
+            userTimezone: timezone || 'UTC',
+            message: 'NA'
         };
         
         await DocumentClient.put({
@@ -50,7 +51,8 @@ module.exports.handler = async (event) => {
             name,
             email,
             duration,
-            sessionTime: userSessionTime
+            sessionTime: userSessionTime,
+            message: message
         })
     }catch(e){
         console.log(e);

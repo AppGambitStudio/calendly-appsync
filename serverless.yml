@@ -305,3 +305,13 @@ resources:
                 - Effect: "Allow"
                   Action: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
                   Resource: "*"
+
+outputs:
+  CognitoUserPoolId:
+    Value: !Ref CognitoUserPool
+    
+  CalendlyCognitoDomainName:
+    Value: !Ref CalendlyCognitoDomain
+  
+  WebUserPoolClientId:
+    Value: !Ref WebUserPoolClient  

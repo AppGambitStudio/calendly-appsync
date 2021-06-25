@@ -50,6 +50,7 @@ type UserSession{
     contactName: String
     contactEmail: String
     userTimezone: String
+    message: String
 }
 
 type UserSessionConnection{
@@ -72,7 +73,7 @@ type Mutation{
     addEvent(shortName: String!, eventName: String!, duration: Int!): UserEvent
     @aws_auth(cognito_groups: ["User"])
 
-    addSession(contactName: String, contactEmail: String, duration: Int, sessionTime: AWSDateTime, userTimezone: String): UserSession
+    addSession(contactName: String, contactEmail: String, duration: Int, sessionTime: AWSDateTime, userTimezone: String, message: String): UserSession
     @aws_auth(cognito_groups: ["User"])
 }
 

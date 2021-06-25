@@ -9,7 +9,8 @@
     "contactName" : $util.dynamodb.toDynamoDBJson($ctx.args.contactName),
     "contactEmail" : $util.dynamodb.toDynamoDBJson($ctx.args.contactEmail),
     "duration" : $util.dynamodb.toDynamoDBJson($ctx.args.duration),
-    "userTimezone" : $util.dynamodb.toDynamoDBJson($ctx.args.userTimezone)
+    "userTimezone" : $util.dynamodb.toDynamoDBJson($ctx.args.userTimezone),
+    "message": $util.dynamodb.toDynamoDBJson($ctx.args.message)
   },
   "condition" : {
       "expression" : "attribute_not_exists(id) and attribute_not_exists(sessionTime)"
