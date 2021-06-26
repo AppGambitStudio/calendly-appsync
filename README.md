@@ -4,7 +4,7 @@
 
 Copy the `sample.config.json` file and create the `config.<stage>.json` file and set the correct values.
 
-## Lumigo Singup
+## Lumigo Signup
 
 I am using Lumigo as a monitoring service for this application. They have a Free Tier so you can signup and generate the application token without any additional cost. 
 
