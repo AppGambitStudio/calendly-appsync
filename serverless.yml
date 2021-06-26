@@ -8,6 +8,7 @@ plugins:
   - serverless-plugin-include-dependencies
   - serverless-plugin-common-excludes
   - serverless-stack-output
+  - serverless-lumigo
 
 provider:
   name: aws
@@ -34,6 +35,9 @@ custom:
   FromEmailAddress: ${file(./config.${opt:stage, 'dev'}.json):FromEmailAddress}
   output:
     file: output-stack.yml
+  lumigo:
+    token: ${file(./config.${opt:stage, 'dev'}.json):LUMIGO_TOKEN}
+    nodePackageManager: npm
 
 package:
   exclude:

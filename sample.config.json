@@ -1,4 +1,5 @@
 {
     "FromEmailAddress": "",
-    "BUCKET_NAME": ""
+    "BUCKET_NAME": "",
+    "LUMIGO_TOKEN": ""
 }

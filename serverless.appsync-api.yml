@@ -9,6 +9,7 @@ logConfig:
   loggingRoleArn: { Fn::GetAtt: [AppSyncLoggingServiceRole, Arn] }
   level: ALL
   excludeVerboseContent: false
+xrayEnabled: true
 
 mappingTemplates:
   - dataSource: Users
